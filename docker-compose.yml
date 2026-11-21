@@ -1,0 +1,145 @@
+services:
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: shopsphere-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: shopsphere
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Please set DB_PASSWORD in your .env file}
+      POSTGRES_DB: postgres
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shopsphere -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Auth Service
+  auth-service:
+    build: ./services/auth-service
+    container_name: shopsphere-auth
+    restart: unless-stopped
+
+    environment:
+      PORT: 5001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: shopsphere_auth
+      DB_USER: shopsphere
+      DB_PASSWORD: ${DB_PASSWORD:?Please set DB_PASSWORD in your .env file}
+      JWT_SECRET: ${JWT_SECRET:?Please set JWT_SECRET in your .env file}
+      JWT_EXPIRES_IN: 1d
+      LOG_LEVEL: info
+
+    ports:
+      - "5001:5001"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Product Service
+  product-service:
+    build: ./services/product-service
+    container_name: shopsphere_product
+    restart: unless-stopped
+
+    environment:
+      PORT: 5002
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: shopsphere_products
+      DB_USER: shopsphere
+      DB_PASSWORD: ${DB_PASSWORD:?Please set DB_PASSWORD in your .env file}
+
+    ports:
+      - "5002:5002"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Order Service
+  order-service:
+    build: ./services/order-service
+    container_name: shopsphere-order
+    restart: unless-stopped
+
+    environment:
+      PORT: 5003
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: shopsphere_orders
+      DB_USER: shopsphere
+      DB_PASSWORD: ${DB_PASSWORD:?Please set DB_PASSWORD in your .env file}
+      PRODUCT_SERVICE_URL: http://product-service:5002
+
+
+    ports:
+      - "5003:5003"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      product-service:
+        condition: service_started
+
+  # Payment Service
+  payment-service:
+    build: ./services/payment-service
+    container_name: shopsphere-payment
+    restart: unless-stopped
+
+    environment:
+      PORT: 5004
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: shopsphere_payments
+      DB_USER: shopsphere
+      DB_PASSWORD: ${DB_PASSWORD:?Please set DB_PASSWORD in your .env file}
+      ORDER_SERVICE_URL: http://order-service:5003
+
+    ports:
+      - "5004:5004"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      order-service:
+        condition: service_started
+
+  # API Gateway
+  api-gateway:
+    build: ./services/api-gateway
+    container_name: shopsphere-gateway
+    restart: unless-stopped
+
+    environment:
+      PORT: 5000
+      AUTH_SERVICE_URL: http://auth-service:5001
+      PRODUCT_SERVICE_URL: http://product-service:5002
+      ORDER_SERVICE_URL: http://order-service:5003
+      PAYMENT_SERVICE_URL: http://payment-service:5004
+
+    ports:
+      - "5000:5000"
+
+    depends_on:
+      - auth-service
+      - product-service
+      - order-service
+      - payment-service
+
+
+volumes:
+  postgres_data:
