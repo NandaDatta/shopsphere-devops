@@ -9,7 +9,6 @@ pipeline {
 
     environment {
         CI_DB_PASSWORD = 'ci_only_password'
-        CI_JWT_SECRET = 'shopsphere_ci_test_secret_only'
         DB_HOST = 'shopsphere-ci-db'
         DB_PORT = '5432'
         DB_USER = 'shopsphere'
@@ -46,22 +45,47 @@ pipeline {
                         -e POSTGRES_DB=shopsphere_auth_test \
                         postgres:16-alpine
 
+                    echo "Waiting for PostgreSQL initialization to finish..."
+
+                    for attempt in $(seq 1 60); do
+                        if docker logs shopsphere-ci-db 2>&1 | \
+                            grep -qF "PostgreSQL init process complete; ready for start up."; then
+                            break
+                        fi
+
+                        sleep 1
+                    done
+
+                    if ! docker logs shopsphere-ci-db 2>&1 | \
+                        grep -qF "PostgreSQL init process complete; ready for start up."; then
+                        echo "PostgreSQL initialization did not complete."
+                        docker logs shopsphere-ci-db
+                        exit 1
+                    fi
+
+                    echo "PostgreSQL initialization completed."
+
                     for attempt in $(seq 1 30); do
                         if docker exec shopsphere-ci-db \
                             pg_isready -U shopsphere -d shopsphere_auth_test; then
                             break
                         fi
+
                         sleep 2
                     done
 
                     docker exec shopsphere-ci-db \
                         pg_isready -U shopsphere -d shopsphere_auth_test
 
+                    echo "Creating additional test databases..."
+
                     docker exec shopsphere-ci-db \
                         createdb -U shopsphere shopsphere_orders_test
 
                     docker exec shopsphere-ci-db \
                         createdb -U shopsphere shopsphere_products_test
+
+                    echo "All CI test databases are ready."
                 '''
             }
         }
