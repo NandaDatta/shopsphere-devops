@@ -218,6 +218,54 @@ pipeline {
                 }
             }
         }
+
+        stage('Push Images to AWS ECR') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-ecr-jenkins',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    sh '''
+                        set -eu
+
+                        export AWS_DEFAULT_REGION=ap-south-1
+
+                        ACCOUNT_ID=727876783162
+                        REGISTRY="${ACCOUNT_ID}.dkr.ecr.ap-south-1.amazonaws.com"
+                        IMAGE_TAG=$(git rev-parse --short=12 HEAD)
+
+                        echo "Authenticating with AWS ECR..."
+
+                        aws ecr get-login-password --region ap-south-1 |
+                            docker login --username AWS --password-stdin "$REGISTRY"
+
+                        SERVICES="
+                        api-gateway
+                        auth-service
+                        product-service
+                        order-service
+                        payment-service
+                        "
+
+                        for SERVICE in $SERVICES; do
+                            IMAGE="shopsphere-${SERVICE}"
+
+                            echo "Pushing ${IMAGE}:${IMAGE_TAG}..."
+
+                            docker tag "${IMAGE}:${IMAGE_TAG}" \
+                                "${REGISTRY}/${IMAGE}:${IMAGE_TAG}"
+
+                            docker push "${REGISTRY}/${IMAGE}:${IMAGE_TAG}"
+                        done
+
+                        echo "All five images pushed successfully to AWS ECR."
+                    '''
+                }
+            }
+        }
     }
 
     post {
