@@ -137,6 +137,33 @@ pipeline {
                 echo 'No API Gateway Jest test files currently exist. Skipping.'
             }
         }
+
+
+
+        stage('Build Docker Images') {
+            steps {
+                script {
+                    def imageTag = sh(
+                        script: 'git rev-parse --short=12 HEAD',
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Building Docker images with tag: ${imageTag}"
+
+                    sh """
+                        set -eu
+
+                        docker build -t shopsphere-api-gateway:${imageTag} services/api-gateway
+                        docker build -t shopsphere-auth-service:${imageTag} services/auth-service
+                        docker build -t shopsphere-product-service:${imageTag} services/product-service
+                        docker build -t shopsphere-order-service:${imageTag} services/order-service
+                        docker build -t shopsphere-payment-service:${imageTag} services/payment-service
+
+                        echo "All five Docker images built successfully."
+                    """
+                }
+            }
+        }
     }
 
     post {
