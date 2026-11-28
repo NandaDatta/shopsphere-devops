@@ -1,0 +1,57 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "RegisterShopSphereTaskDefinitions",
+      "Effect": "Allow",
+      "Action": "ecs:RegisterTaskDefinition",
+      "Resource": [
+        "arn:aws:ecs:ap-south-1:727876783162:task-definition/shopsphere-api-gateway:*",
+        "arn:aws:ecs:ap-south-1:727876783162:task-definition/shopsphere-auth-service:*",
+        "arn:aws:ecs:ap-south-1:727876783162:task-definition/shopsphere-product-service:*",
+        "arn:aws:ecs:ap-south-1:727876783162:task-definition/shopsphere-order-service:*",
+        "arn:aws:ecs:ap-south-1:727876783162:task-definition/shopsphere-payment-service:*"
+      ]
+    },
+    {
+      "Sid": "DescribeTaskDefinitions",
+      "Effect": "Allow",
+      "Action": "ecs:DescribeTaskDefinition",
+      "Resource": "*"
+    },
+    {
+      "Sid": "ManageShopSphereServices",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:UpdateService",
+        "ecs:DescribeServices"
+      ],
+      "Resource": [
+        "arn:aws:ecs:ap-south-1:727876783162:service/shopsphere-cluster/shopsphere-api-gateway",
+        "arn:aws:ecs:ap-south-1:727876783162:service/shopsphere-cluster/shopsphere-auth-service",
+        "arn:aws:ecs:ap-south-1:727876783162:service/shopsphere-cluster/shopsphere-product-service",
+        "arn:aws:ecs:ap-south-1:727876783162:service/shopsphere-cluster/shopsphere-order-service",
+        "arn:aws:ecs:ap-south-1:727876783162:service/shopsphere-cluster/shopsphere-payment-service"
+      ],
+      "Condition": {
+        "ArnEquals": {
+          "ecs:cluster": "arn:aws:ecs:ap-south-1:727876783162:cluster/shopsphere-cluster"
+        }
+      }
+    },
+    {
+      "Sid": "PassShopSphereTaskRoles",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": [
+        "arn:aws:iam::727876783162:role/ShopSphereECSTaskExecutionRole",
+        "arn:aws:iam::727876783162:role/ShopSphereECSTaskRole"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": "ecs-tasks.amazonaws.com"
+        }
+      }
+    }
+  ]
+}
