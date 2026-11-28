@@ -134,7 +134,10 @@ pipeline {
 
         stage('API Gateway') {
             steps {
-                echo 'No API Gateway Jest test files currently exist. Skipping.'
+                dir('services/api-gateway') {
+                    sh 'npm ci'
+                    sh 'npm test'
+                }
             }
         }
 
