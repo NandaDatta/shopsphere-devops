@@ -1,5 +1,6 @@
 # Use Node.js LTS image
 FROM node:22-alpine
+RUN npm install --global npm@11.21.3
 
 # Set work directory
 WORKDIR /app

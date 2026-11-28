@@ -164,6 +164,60 @@ pipeline {
                 }
             }
         }
+
+        stage('Trivy Security Scan') {
+            steps {
+                script {
+                    def imageTag = sh(
+                        script: 'git rev-parse --short=12 HEAD',
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Scanning Docker images tagged: ${imageTag}"
+
+                    sh """
+                        set -eu
+
+                        trivy image \
+                            --scanners vuln \
+                            --severity HIGH,CRITICAL \
+                            --exit-code 1 \
+                            --no-progress \
+                            shopsphere-api-gateway:${imageTag}
+
+                        trivy image \
+                            --scanners vuln \
+                            --severity HIGH,CRITICAL \
+                            --exit-code 1 \
+                            --no-progress \
+                            shopsphere-auth-service:${imageTag}
+
+                        trivy image \
+                            --scanners vuln \
+                            --severity HIGH,CRITICAL \
+                            --exit-code 1 \
+                            --no-progress \
+                            shopsphere-product-service:${imageTag}
+
+                        trivy image \
+                            --scanners vuln \
+                            --severity HIGH,CRITICAL \
+                            --exit-code 1 \
+                            --no-progress \
+                            shopsphere-order-service:${imageTag}
+
+                        trivy image \
+                            --scanners vuln \
+                            --severity HIGH,CRITICAL \
+                            --exit-code 1 \
+                            --no-progress \
+                            shopsphere-payment-service:${imageTag}
+
+                        echo "All five Docker images passed Trivy security scanning."
+                    """
+                }
+            }
+        }
     }
 
     post {
