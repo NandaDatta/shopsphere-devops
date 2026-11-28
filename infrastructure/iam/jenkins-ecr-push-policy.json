@@ -1,31 +1,33 @@
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "AllowECRAuthentication",
-      "Effect": "Allow",
-      "Action": [
-        "ecr:GetAuthorizationToken"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AllowPushToShopSphereRepositories",
-      "Effect": "Allow",
-      "Action": [
-        "ecr:BatchCheckLayerAvailability",
-        "ecr:InitiateLayerUpload",
-        "ecr:UploadLayerPart",
-        "ecr:CompleteLayerUpload",
-        "ecr:PutImage"
-      ],
-      "Resource": [
-        "arn:aws:ecr:ap-south-1:727876783162:repository/shopsphere-api-gateway",
-        "arn:aws:ecr:ap-south-1:727876783162:repository/shopsphere-auth-service",
-        "arn:aws:ecr:ap-south-1:727876783162:repository/shopsphere-product-service",
-        "arn:aws:ecr:ap-south-1:727876783162:repository/shopsphere-order-service",
-        "arn:aws:ecr:ap-south-1:727876783162:repository/shopsphere-payment-service"
-      ]
-    }
-  ]
+"Version": "2012-10-17",
+"Statement": [
+{
+"Sid": "AllowECRAuthentication",
+"Effect": "Allow",
+"Action": [
+"ecr:GetAuthorizationToken"
+],
+"Resource": "*"
+},
+{
+"Sid": "AllowPushToShopSphereRepositories",
+"Effect": "Allow",
+"Action": [
+"ecr:BatchCheckLayerAvailability",
+"ecr:BatchGetImage",
+"ecr:GetDownloadUrlForLayer",
+"ecr:InitiateLayerUpload",
+"ecr:UploadLayerPart",
+"ecr:CompleteLayerUpload",
+"ecr:PutImage"
+],
+"Resource": [
+"arn:aws:ecr:ap-south-1:727876783162:repository/shopsphere-api-gateway",
+"arn:aws:ecr:ap-south-1:727876783162:repository/shopsphere-auth-service",
+"arn:aws:ecr:ap-south-1:727876783162:repository/shopsphere-product-service",
+"arn:aws:ecr:ap-south-1:727876783162:repository/shopsphere-order-service",
+"arn:aws:ecr:ap-south-1:727876783162:repository/shopsphere-payment-service"
+]
+}
+]
 }
