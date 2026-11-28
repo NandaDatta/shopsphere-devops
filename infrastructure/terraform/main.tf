@@ -837,7 +837,7 @@ data "aws_ssm_parameter" "amazon_linux_2023" {
 
 # ShopSphere PostgreSQL EC2 Instance
 resource "aws_instance" "postgres" {
-  ami           = data.aws_ssm_parameter.amazon_linux_2023.value
+  ami           = "ami-0593d733c2fc5bd2e"
   instance_type = "t3.small"
 
   subnet_id = aws_subnet.private_1.id
@@ -1018,6 +1018,10 @@ resource "aws_ecs_service" "api_gateway" {
   cluster         = aws_ecs_cluster.shopsphere_cluster.id
   task_definition = aws_ecs_task_definition.api_gateway.arn
   desired_count   = 1
+
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
 
   capacity_provider_strategy {
     capacity_provider = "FARGATE"
@@ -1420,6 +1424,10 @@ resource "aws_ecs_service" "auth_service" {
   task_definition = aws_ecs_task_definition.auth_service.arn
   desired_count   = 1
 
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
+
   capacity_provider_strategy {
     capacity_provider = "FARGATE"
     weight            = 1
@@ -1464,6 +1472,10 @@ resource "aws_ecs_service" "product_service" {
   cluster         = aws_ecs_cluster.shopsphere_cluster.id
   task_definition = aws_ecs_task_definition.product_service.arn
   desired_count   = 1
+
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
 
   capacity_provider_strategy {
     capacity_provider = "FARGATE"
@@ -1510,6 +1522,10 @@ resource "aws_ecs_service" "order_service" {
   task_definition = aws_ecs_task_definition.order_service.arn
   desired_count   = 1
 
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
+
   capacity_provider_strategy {
     capacity_provider = "FARGATE"
     weight            = 1
@@ -1554,6 +1570,10 @@ resource "aws_ecs_service" "payment_service" {
   cluster         = aws_ecs_cluster.shopsphere_cluster.id
   task_definition = aws_ecs_task_definition.payment_service.arn
   desired_count   = 1
+
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
 
   capacity_provider_strategy {
     capacity_provider = "FARGATE"
