@@ -271,6 +271,39 @@ pipeline {
                 }
             }
         }
+
+        stage('Verify ECS Deployment Access') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-ecs-jenkins',
+                        usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    sh '''
+                        set -eu
+
+                        export AWS_DEFAULT_REGION=ap-south-1
+
+                        echo "Verifying ECS deployment identity..."
+
+                        aws sts get-caller-identity \
+                            --query Arn \
+                            --output text
+
+                        echo "Checking ECS task definition read access..."
+
+                        aws ecs describe-task-definition \
+                            --task-definition shopsphere-api-gateway \
+                            --query 'taskDefinition.{Family:family,Revision:revision,Containers:containerDefinitions[*].name}' \
+                            --output json
+
+                        echo "ECS deployment credentials verified."
+                    '''
+                }
+            }
+        }
     }
 
     post {
