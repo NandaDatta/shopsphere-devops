@@ -262,6 +262,8 @@ pipeline {
                         done
 
                         echo "All five images pushed successfully to AWS ECR."
+
+                        docker logout "$REGISTRY"
                     '''
                 }
             }
